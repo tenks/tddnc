@@ -1,5 +1,11 @@
 extends layout
-
 block content
-  h1= title
-  p Welcome to #{title}
+	div#container
+		ul#online
+		ul#messages
+			form.chat(action="")
+				input#m(autocomplete="off")
+				button Send
+	script(src='/socket.io/socket.io.js')
+	script(src='http://code.jquery.com/jquery-1.11.1.js')
+	script(src='/js/chat.js')
