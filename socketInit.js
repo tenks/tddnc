@@ -25,6 +25,8 @@ var socketInit = function() {
       console.log(msg);
       if(messages.length > playback_length) 
         messages.splice(0, 1);
+
+      data = htmlEntities(data); //prevent user from adding dom elements in their messages
       io.emit('update', socket.username, data);
     });
 
@@ -37,5 +39,9 @@ var socketInit = function() {
   });
   return io;
 };
+
+function htmlEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 module.exports = socketInit;
