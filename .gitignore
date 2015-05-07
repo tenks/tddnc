@@ -1,0 +1,7 @@
+logs
+node_modules
+npm-debug.log
+*.logs
+*.pid
+*.seed
+*.db
