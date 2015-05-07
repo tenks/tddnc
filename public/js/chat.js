@@ -4,24 +4,28 @@ $(function() {
 	$('form').submit(function() {
 		var msg = $('#m').val();
 		if(msg) {
-			socket.emit('chat message', msg);
+			socket.emit('send message', msg);
 			$('#m').val('');
 		}
 		return false;
 	});
 });
 
-socket.on('chat message', function(msg) {
-   $('#messages').append($('<li>').text(msg));
+socket.on('update', function(username, data) {
+	$('#messages').append('<li><b>'+username+'</b>: '+data+'</li>');
 });
 
-//add to online list
-socket.on('user online', function(msg) {
-	$('#online').append($('<li>').text(msg));
+socket.on('update users', function(data) {
+	$('#online').empty();
+	$.each(data, function(key, value) {
+		$('#online').append($('<li>').text(key));
+	});
 });
 
-//remove from online list
-socket.on('user offline', function(msg) {
-	var selector = ':contains('+msg+')';
-	$('#online').children('li').remove(selector);
-});
+socket.on('playback', function(data) {
+	$('#messages').append($('<li>').text('====PLAYBACK===='));
+	$.each(data, function(key, value) {
+		$('#messages').append($('<li>').text(value));
+	});
+	$('#messages').append($('<li>').text('==PLAYBACK END=='));
+})

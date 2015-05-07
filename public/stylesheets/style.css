@@ -15,7 +15,7 @@ form {
 	padding: 3px; 
 	position: fixed; 
 	bottom: 0; 
-	width: 100%; 
+	width: 80%; 
 }
 form input {
 	border: 0; 
@@ -30,10 +30,6 @@ form button {
 	padding: 10px; 
 }
 
-#container {
-	column-count: 2;
-}
-
 #messages { 
 	list-style-type: none; 
 	margin: 0; 
@@ -41,11 +37,15 @@ form button {
 	border: 1px solid black;
 	width: 80%;
 	float:left;
+	overflow: scroll-y;
 }
 
-#sidebar {
+#online {
+	width:18%;
 	float:left;
-	width:20%;
+	list-style-type: none;
+	overflow: scroll-y;
+	margin-right:20px;
 }
 
 #messages li { 

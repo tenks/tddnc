@@ -1,28 +1,39 @@
 var socketIO = require('socket.io');
-var Chance = require('chance');
 var io = socketIO();
-var chance = new Chance();
+var Chance = require('chance');
+
 
 var socketInit = function() {
-  io.on('connection', function(socket) {
+  var userlist = {};
+  var messages = [];
+  var playback_length = 50; //number of messages to playback on join
+  var chance = new Chance();
 
-    var name = chance.name();
+  io.on('connection', function(socket) {   
+    var username = chance.name();
+    socket.username = username; //storing username in socket for testing
+    userlist[username] = username; //add username to userlist
+    console.log(username+' connected');
+    socket.emit('update', 'SERVER', ' you have connected');
+    socket.broadcast.emit('update', 'SERVER', username+' has connected');
+    if(messages.length) socket.emit('playback', messages);
+    io.emit('update users', userlist);
 
-    console.log('a user connected');
-    io.emit('chat message', 'a user connected');
-    io.emit('user online', name);
+    socket.on('send message', function(data) {
+      var msg = '<'+socket.username+'>: '+data; //unformatted raw string for playback
+      messages.push(msg);
+      console.log(msg);
+      if(messages.length > playback_length) 
+        messages.splice(0, 1);
+      io.emit('update', socket.username, data);
+    });
 
     socket.on('disconnect', function() {
       console.log('a user disconnected');
-      io.emit('chat message', 'a user disconnected');
-      io.emit('user offline', name);
+      delete userlist[socket.username];
+      io.emit('update users', userlist);
+      io.emit('update', 'SERVER', socket.username+' has disconnected');
     });
-
-    socket.on('chat message', function(msg) {
-      console.log('message: ' + msg);
-      io.emit('chat message', msg);
-    });
-
   });
   return io;
 };
