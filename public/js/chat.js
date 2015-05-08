@@ -1,9 +1,6 @@
 var socket = io();
 
-$(function() {
-/*	$.get('../phpbb_parse.php', function(data) {
-		alert(data);
-	});*/
+$(document).ready(function() {
 	$('form').submit(function() {
 		var msg = $('#m').val();
 		if(msg) {

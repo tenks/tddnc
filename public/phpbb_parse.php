@@ -30,8 +30,6 @@ $json = array(
 					'user_group'			=> $user_group
 );
 
-
-$json = json_encode($json);
+$json = json_encode($json, JSON_NUMERIC_CHECK | JSON_FORCE_OBJECT);
 print_r($json);
-
 ?>
