@@ -1,4 +1,5 @@
 <?php
+
 //phpBB includes etc.
 define('IN_PHPBB', true);
 $phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : '../../';
@@ -10,11 +11,6 @@ $auth->acl($user->data);
 
 $user->setup();
 $user_id = $user->data['user_id'];
-
-if($user_id == ANONYMOUS) {
-	die('You need to be logged into the forum to use this chat');
-	//TODO catch this and route it to a nicely formatted error page
-}
 
 //setup all values we need from user object
 $username = $user->data['username'];
@@ -31,8 +27,11 @@ else
 $json = array(
 					'username' 				=> $username,
 					'username_color' 	=> $username_color,
-					'user_group'				=> $user_group
+					'user_group'			=> $user_group
 );
 
-echo json_encode($json);
+
+$json = json_encode($json);
+print_r($json);
+
 ?>

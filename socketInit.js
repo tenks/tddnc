@@ -1,7 +1,7 @@
 var socketIO = require('socket.io');
 var io = socketIO();
 var Chance = require('chance');
-
+var request = require('request');
 
 var socketInit = function() {
   var userlist = {};
@@ -10,6 +10,13 @@ var socketInit = function() {
   var chance = new Chance();
 
   io.on('connection', function(socket) {   
+    request('http://localhost/uushii/tddnc/public/phpbb_parse.php', function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        data = JSON.parse(body)[0];
+        console.log(data);
+      }
+    })
+
     var username = chance.name();
     socket.username = username; //storing username in socket for testing
     userlist[username] = username; //add username to userlist
