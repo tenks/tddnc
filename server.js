@@ -14,6 +14,7 @@ var server = function() {
       console.log(username+' connected');
       
       socket.emit('send config', config);
+      socket.emit('update', 'SERVER', ' you have connected');
       socket.broadcast.emit('update', 'SERVER', username+' has connected');
       if(messages.length) socket.emit('playback', messages);
       io.emit('update users', userlist);
