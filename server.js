@@ -13,7 +13,7 @@ var server = function() {
       socket.username = username; //storing username in socket for testing
       userlist[username] = username; //add username to userlist
       console.log(username+' connected');
-      socket.emit('update', 'SERVER', ' you have connected');
+      socket.emit('update', 'SERVER', ' you have connected', config);
       socket.broadcast.emit('update', 'SERVER', username+' has connected');
       if(messages.length) socket.emit('playback', messages);
       io.emit('update users', userlist);
