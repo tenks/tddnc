@@ -1,22 +1,22 @@
 var socketIO = require('socket.io');
+var config = require('./config');
 var io = socketIO();
-var Chance = require('chance');
 
-var socketInit = function() {
+var server = function() {
   var userlist = {};
   var messages = [];
   var playback_length = 10; //number of messages to playback on join
-  var chance = new Chance();
 
   io.on('connection', function(socket) {   
-    var username = chance.name();
-    socket.username = username; //storing username in socket for testing
-    userlist[username] = username; //add username to userlist
-    console.log(username+' connected');
-    socket.emit('update', 'SERVER', ' you have connected');
-    socket.broadcast.emit('update', 'SERVER', username+' has connected');
-    if(messages.length) socket.emit('playback', messages);
-    io.emit('update users', userlist);
+    socket.on('add user', function(username){
+      socket.username = username; //storing username in socket for testing
+      userlist[username] = username; //add username to userlist
+      console.log(username+' connected');
+      socket.emit('update', 'SERVER', ' you have connected');
+      socket.broadcast.emit('update', 'SERVER', username+' has connected');
+      if(messages.length) socket.emit('playback', messages);
+      io.emit('update users', userlist);
+    });
 
     socket.on('send message', function(data) {
       var msg = '<'+socket.username+'>: '+data; //unformatted raw string for playback
@@ -35,6 +35,10 @@ var socketInit = function() {
       io.emit('update users', userlist);
       io.emit('update', 'SERVER', socket.username+' has disconnected');
     });
+
+    socket.on("typing", function(data) {
+      io.emit("is typing", {is_typing: data , username: socket.username});
+    });
   });
   return io;
 };
@@ -43,4 +47,4 @@ function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-module.exports = socketInit;
+module.exports = server;
