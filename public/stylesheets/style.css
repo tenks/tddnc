@@ -40,3 +40,7 @@ a {
 #messages li:nth-child(odd) { 
 	background: #eee; 
 }
+
+.italic {
+	font-style:italic;
+}

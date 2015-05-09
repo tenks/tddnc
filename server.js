@@ -39,6 +39,10 @@ var server = function() {
     socket.on("typing", function(data) {
       io.emit("is typing", {is_typing: data , username: socket.username});
     });
+
+    socket.on("away", function(data) {
+      io.emit("is away", {is_away: data , username: socket.username});
+    });
   });
   return io;
 };
