@@ -16,12 +16,14 @@ $(document).ready(function() {
 
 	$('#m').keypress(function(e) {
 		if (e.which !== 13) {
-			if($('#m').is(":focus") && typing === false && away === true) {
+			if($('#m').is(":focus") && typing === false) {
 				typing = true;
-				away = false;
 				socket.emit("typing", true);
-				socket.emit("away", false);
 			} 
+			if(away === true) {
+				away = false;
+				socket.emit("away", false);
+			}
 
 			clearTimeout(typingtimeout);
 			typingtimeout = setTimeout(typing_timeout, 2000);
