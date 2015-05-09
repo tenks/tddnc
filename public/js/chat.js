@@ -1,6 +1,8 @@
 var socket = io();
 
 $(document).ready(function() {
+	$('#messages').perfectScrollbar();
+
 	$('form').submit(function() {
 		var msg = $('#m').val();
 		if(msg) {
@@ -13,6 +15,8 @@ $(document).ready(function() {
 
 socket.on('update', function(username, data) {
 	$('#messages').append('<li><b>'+username+'</b>: '+data+'</li>');
+	$('#messages').scrollTop(100000)
+	$('#messages').perfectScrollbar('update');
 });
 
 socket.on('update users', function(data) {

@@ -5,7 +5,7 @@ var Chance = require('chance');
 var socketInit = function() {
   var userlist = {};
   var messages = [];
-  var playback_length = 50; //number of messages to playback on join
+  var playback_length = 10; //number of messages to playback on join
   var chance = new Chance();
 
   io.on('connection', function(socket) {   
