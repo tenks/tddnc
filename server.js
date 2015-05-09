@@ -1,6 +1,7 @@
 var socketIO = require('socket.io');
-var config = require('./config');
 var io = socketIO();
+var Chance = require('chance');
+var config = require('./config');
 
 var server = function() {
   var userlist = {};
