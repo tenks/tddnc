@@ -12,7 +12,8 @@ var server = function() {
       socket.username = username; //storing username in socket for testing
       userlist[username] = username; //add username to userlist
       console.log(username+' connected');
-      socket.emit('update', 'SERVER', ' you have connected', config);
+      
+      socket.emit('send config', config);
       socket.broadcast.emit('update', 'SERVER', username+' has connected');
       if(messages.length) socket.emit('playback', messages);
       io.emit('update users', userlist);
@@ -41,7 +42,11 @@ var server = function() {
     });
 
     socket.on("away", function(data) {
-      io.emit("is away", {is_away: data , username: socket.username});
+      io.emit("is away", {is_away: data , username: socket.username}, config);
+      if(data)
+        socket.emit('update', 'SERVER', ' you are now away');
+      else
+        socket.emit('update', 'SERVER', ' you are no longer away');
     });
   });
   return io;
