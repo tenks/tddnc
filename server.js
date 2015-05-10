@@ -11,6 +11,7 @@ var server = function() {
     socket.on('add user', function(username){
       socket.username = username; //storing username in socket for testing
       userlist[username] = { // add username to userlist
+        //'typing' : false, not sure if this is an important property
         'away' : false
       };
       console.log(username + ' connected');
@@ -45,10 +46,13 @@ var server = function() {
 
     socket.on("away", function(data) {
       io.emit("is away", {is_away: data , username: socket.username}, config);
-      if(data)
+      if(data) {
         socket.emit('update', 'SERVER', ' you are now away');
-      else
+        userlist[socket.username].away = true;
+      } else {
         socket.emit('update', 'SERVER', ' you are no longer away');
+        userlist[socket.username].away = false;
+      }
     });
   });
   return io;

@@ -16,7 +16,7 @@ function away_timeout() {
 }
 
 function update_typing(is_typing, username) {
-	var username_hook = $('#online').find($(':contains('+username+')'));
+	var username_hook = $('#online').find($(':contains(' + username + ')'));
 	if(is_typing) 
 		username_hook.append(' <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>');
 	else 
@@ -24,7 +24,7 @@ function update_typing(is_typing, username) {
 }
 
 function update_away(is_away, username, config) {
-	var username_hook = $('#online').find($(':contains('+username+')'));
+	var username_hook = $('#online').find($(':contains(' + username + ')'));
 	if(is_away) 
 		username_hook.addClass('italic');
 	 else {
@@ -94,7 +94,12 @@ socket.on('send config', function(config) {
 socket.on('update users', function(data) {
 	$('#online').empty();
 	$.each(data, function(key, value) {
-		$('#online').append($('<li>').text(key));
+		/* FIX THIS
+		 * probably a jquery issue. userlist doesn't get updated correctly */
+		if(data[key].away)
+			$('#online').append($('<li>').text(key)).addClass('italic');
+		else
+			$('#online').append($('<li>').text(key));
 	});
 });
 
@@ -103,6 +108,5 @@ socket.on('playback', function(data) {
 	$.each(data, function(key, value) {
 		$('#messages').append($('<li>').text(value));
 	});
-
 	$('#messages').append($('<li>').text('==PLAYBACK END=='));
 })
