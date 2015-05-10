@@ -1,8 +1,18 @@
+/* initialize variables */
 var socket = io();
-var typing = false;
-var away = false;
-var typingtimeout = undefined;
-var awaytimeout = undefined;
+var typing = false; // user is typing
+var away = false; // user is away
+var typing_time = undefined; // time after last keypress where user will be 'typing' in ms
+var autoaway_time = undefined; // time user has before auto away in minutes
+var typingtimeout = undefined; // timeout for typing
+var awaytimeout = undefined; // timeout for auto away
+
+/* initialize and store config variables */
+socket.on('send config', function(config) {
+	autoaway_time = config.autoaway_time;
+	typing_time = config.typing_time;
+	awaytimeout = setTimeout(away_timeout, (autoaway_time * 1000 * 60)); // start timer upon entering
+});
 
 /* functions */
 function typing_timeout() {
@@ -23,14 +33,14 @@ function update_typing(is_typing, username) {
 		username_hook.find('span').remove();
 }
 
-function update_away(is_away, username, config) {
+function update_away(is_away, username) {
 	var username_hook = $('#online').find($(':contains(' + username + ')'));
 	if(is_away) 
 		username_hook.addClass('italic');
 	 else {
 		username_hook.removeClass('italic');
 		clearTimeout(awaytimeout);
-		awaytimeout = setTimeout(away_timeout, (config.autoaway * 1000 * 60));
+		awaytimeout = setTimeout(away_timeout, (autoaway_time * 1000 * 60));
 	}
 }
 
@@ -55,9 +65,11 @@ $(document).ready(function() {
 				away = false;
 				socket.emit("away", false);
 			}
-
+			/* clear timeouts */
 			clearTimeout(typingtimeout);
-			typingtimeout = setTimeout(typing_timeout, 2000);
+			typingtimeout = setTimeout(typing_timeout, typing_time);
+			clearTimeout(awaytimeout);
+			awaytimeout = setTimeout(away_timeout, (autoaway_time * 1000 * 60));
 		}
 	});	
 
@@ -76,8 +88,8 @@ socket.on("is typing", function(data) {
 	update_typing(data.is_typing, data.username);
 });
 
-socket.on("is away", function(data, config) {
-	update_away(data.is_away, data.username, config);
+socket.on("is away", function(data) {
+	update_away(data.is_away, data.username);
 });
 
 socket.on('update', function(username, data) {
@@ -87,17 +99,11 @@ socket.on('update', function(username, data) {
 	$('#messages').perfectScrollbar('update');
 });
 
-socket.on('send config', function(config) {
-	awaytimeout = setTimeout(away_timeout, (config.autoaway * 1000 * 60));
-});
-
 socket.on('update users', function(data) {
 	$('#online').empty();
 	$.each(data, function(key, value) {
-		/* FIX THIS
-		 * probably a jquery issue. userlist doesn't get updated correctly */
 		if(data[key].away)
-			$('#online').append($('<li>').text(key)).addClass('italic');
+			$('#online').append($('<li class="italic">').text(key));
 		else
 			$('#online').append($('<li>').text(key));
 	});

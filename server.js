@@ -1,5 +1,5 @@
 var socketIO = require('socket.io');
-var io = socketIO();
+var io = socketIO(); // .listen(80);
 var config = require('./config');
 
 var server = function() {
@@ -45,14 +45,12 @@ var server = function() {
     });
 
     socket.on("away", function(data) {
-      io.emit("is away", {is_away: data , username: socket.username}, config);
-      if(data) {
+      io.emit("is away", {is_away: data , username: socket.username});
+      userlist[socket.username].away = data;
+      if(data)
         socket.emit('update', 'SERVER', ' you are now away');
-        userlist[socket.username].away = true;
-      } else {
+      else
         socket.emit('update', 'SERVER', ' you are no longer away');
-        userlist[socket.username].away = false;
-      }
     });
   });
   return io;
