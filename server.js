@@ -7,26 +7,27 @@ var server = function() {
   var messages = [];
   var playback_length = 10; //number of messages to playback on join
 
-  io.on('connection', function(socket) {   
+  io.on('connection', function(socket) {
     socket.on('add user', function(username){
       socket.username = username; //storing username in socket for testing
-      userlist[username] = username; //add username to userlist
-      console.log(username+' connected');
-      
+      userlist[username] = { // add username to userlist
+        'away' : false
+      };
+      console.log(username + ' connected');
       socket.emit('send config', config);
+      socket.emit('update', 'SERVER', config.motd); // remove if needed?
       socket.emit('update', 'SERVER', ' you have connected');
-      socket.broadcast.emit('update', 'SERVER', username+' has connected');
+      socket.broadcast.emit('update', 'SERVER', username + ' has connected');
       if(messages.length) socket.emit('playback', messages);
       io.emit('update users', userlist);
     });
 
     socket.on('send message', function(data) {
-      var msg = '<'+socket.username+'>: '+data; //unformatted raw string for playback
+      var msg = '<' + socket.username + '>: ' + data; //unformatted raw string for playback
       messages.push(msg);
       console.log(msg);
       if(messages.length > playback_length) 
         messages.splice(0, 1);
-
       data = htmlEntities(data); //prevent user from adding dom elements in their messages
       io.emit('update', socket.username, data);
     });

@@ -4,6 +4,37 @@ var away = false;
 var typingtimeout = undefined;
 var awaytimeout = undefined;
 
+/* functions */
+function typing_timeout() {
+	typing = false;
+	socket.emit("typing", false);
+}
+
+function away_timeout() {
+	away = true;
+	socket.emit("away", true);
+}
+
+function update_typing(is_typing, username) {
+	var username_hook = $('#online').find($(':contains('+username+')'));
+	if(is_typing) 
+		username_hook.append(' <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>');
+	else 
+		username_hook.find('span').remove();
+}
+
+function update_away(is_away, username, config) {
+	var username_hook = $('#online').find($(':contains('+username+')'));
+	if(is_away) 
+		username_hook.addClass('italic');
+	 else {
+		username_hook.removeClass('italic');
+		clearTimeout(awaytimeout);
+		awaytimeout = setTimeout(away_timeout, (config.autoaway * 1000 * 60));
+	}
+}
+
+/* frontend events */
 $(document).ready(function() {
 	var username = chance.name()
 	$('#m').val('');
@@ -40,35 +71,7 @@ $(document).ready(function() {
 	});
 });
 
-function typing_timeout() {
-	typing = false;
-	socket.emit("typing", false);
-}
-
-function away_timeout() {
-	away = true;
-	socket.emit("away", true);
-}
-
-function update_typing(is_typing, username) {
-	var username_hook = $('#online').find($(':contains('+username+')'));
-	if(is_typing) 
-		username_hook.append(' <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>');
-	else 
-		username_hook.find('span').remove();
-}
-
-function update_away(is_away, username, config) {
-	var username_hook = $('#online').find($(':contains('+username+')'));
-	if(is_away) 
-		username_hook.addClass('italic');
-	 else {
-		username_hook.removeClass('italic');
-		clearTimeout(awaytimeout);
-		awaytimeout = setTimeout(away_timeout, (config.autoaway * 1000 * 60));
-	}
-}
-
+/* socket events */
 socket.on("is typing", function(data) {
 	update_typing(data.is_typing, data.username);
 });
@@ -79,7 +82,7 @@ socket.on("is away", function(data, config) {
 
 socket.on('update', function(username, data) {
 	update_typing(false, username); typing = false;
-	$('#messages').append('<li><b>'+username+'</b>: '+data+'</li>');
+	$('#messages').append('<li><b>' + username + '</b>: ' + data + '</li>');
 	$('#messages').scrollTop(100000)
 	$('#messages').perfectScrollbar('update');
 });
