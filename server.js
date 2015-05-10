@@ -1,26 +1,69 @@
 var socketIO = require('socket.io');
+var request = require('request');
 var io = socketIO(); // .listen(80);
 var config = require('./config');
+var apache = io.listen(80);
 
 var server = function() {
   var userlist = {};
   var messages = [];
   var playback_length = 10; //number of messages to playback on join
+  var global_user = '';
 
+  /******************************************************************************************** 
+   *   
+   *  APACHE TO SOCKETIO COMMUNICATION - BREAKDOWN
+   *
+   *  we're connecting to apache on port 80 and emit an event to send us data.
+   *  beforehand we were redirected to chat.php which sends the values we're going to fetch here.
+   *  and then redirects to the chat.
+   *  we then define a global user var that is set to NULL after we locally stored it, that is
+   *  to prevent ghosts from connecting that haven't recieved the values or have simply not used
+   *  chat.php to connect. we test that by checking if the global user name is set to NULL, which
+   *  ONLY happens if the user has not revieved the values from chat.php, if that is the case
+   *  the socket gets destroyed and an redirect event is fired, which redirects
+   *  the user back to chat.php to init the vars correctly and then get him back into the chat
+   *   
+   *  this does not work on hard reset of the server, which i am going to assume will not happen
+   *  in prod.
+   *
+   ********************************************************************************************/
+
+
+  /* APACHE CONNECTION */ 
+  apache.on('connection', function(socket2) { 
+    socket2.emit('apache request');
+    socket2.on('apache response', function(data) {
+      global_user = data;
+    }); 
+  });
+
+  /* SOCKET CONNECTION */
   io.on('connection', function(socket) {
-    socket.on('add user', function(username){
-      socket.username = username; //storing username in socket for testing
-      userlist[username] = { // add username to userlist
+    socket.on('add user', function(){
+      if(global_user.username == '' || global_user.username == undefined) {
+        socket.emit('redirect');
+        socket.disconnect();
+      } else {
+        socket.broadcast.emit('update', 'SERVER', global_user.username + ' has connected');
+      }
+      user = global_user; //save vars locally
+      socket.username = user.username; //storing username in socket for testing
+      console.log(user.username + ' connected');
+      
+      userlist[user.username] = { // add username to userlist
         //'typing' : false, not sure if this is an important property
-        'away' : false
+        'away'  : false,
+        'color' : user.username_color
       };
-      console.log(username + ' connected');
+
+      global_user.username = ''; //reset var to prevent ghosts
       socket.emit('send config', config);
       socket.emit('update', 'SERVER', config.motd); // remove if needed?
       socket.emit('update', 'SERVER', ' you have connected');
-      socket.broadcast.emit('update', 'SERVER', username + ' has connected');
+
       if(messages.length) socket.emit('playback', messages);
-      io.emit('update users', userlist);
+      io.emit('update users', userlist);    
     });
 
     socket.on('send message', function(data) {
@@ -37,7 +80,9 @@ var server = function() {
       console.log('a user disconnected');
       delete userlist[socket.username];
       io.emit('update users', userlist);
-      io.emit('update', 'SERVER', socket.username+' has disconnected');
+      if(socket.username !== '' && socket.username !== undefined) {
+        io.emit('update', 'SERVER', socket.username+' has disconnected');
+      }
     });
 
     socket.on("typing", function(data) {
@@ -45,8 +90,8 @@ var server = function() {
     });
 
     socket.on("away", function(data) {
-      io.emit("is away", {is_away: data , username: socket.username});
       userlist[socket.username].away = data;
+      io.emit('update users', userlist);
       if(data)
         socket.emit('update', 'SERVER', ' you are now away');
       else

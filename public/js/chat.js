@@ -26,33 +26,24 @@ function away_timeout() {
 }
 
 function update_typing(is_typing, username) {
-	var username_hook = $('#online').find($(':contains(' + username + ')'));
+	var username_hook = $('#online').find($('li:contains(' + username + ')'));
 	if(is_typing) 
 		username_hook.append(' <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>');
 	else 
-		username_hook.find('span').remove();
-}
-
-function update_away(is_away, username) {
-	var username_hook = $('#online').find($(':contains(' + username + ')'));
-	if(is_away) 
-		username_hook.addClass('italic');
-	 else {
-		username_hook.removeClass('italic');
-		clearTimeout(awaytimeout);
-		awaytimeout = setTimeout(away_timeout, (autoaway_time * 1000 * 60));
-	}
+		username_hook.find('.glyphicon-pencil').remove();
 }
 
 /* frontend events */
 $(document).ready(function() {
-	var username = chance.name()
+  window.onbeforeunload = function() {
+      return "This page does not need to be refreshed";
+  }
 	$('#m').val('');
 	$('#m').focus();
 	$('#messages').perfectScrollbar();
 
 	socket.on('connect', function() {
-		socket.emit('add user', username)
+		socket.emit('add user');
 	});
 
 	$('#m').keypress(function(e) {
@@ -88,13 +79,9 @@ socket.on("is typing", function(data) {
 	update_typing(data.is_typing, data.username);
 });
 
-socket.on("is away", function(data) {
-	update_away(data.is_away, data.username);
-});
-
 socket.on('update', function(username, data) {
 	update_typing(false, username); typing = false;
-	$('#messages').append('<li><b>' + username + '</b>: ' + data + '</li>');
+	$('#messages').append('<li><b style="color:"#'+data.color+'">' + username + '</b>: ' + data + '</li>');
 	$('#messages').scrollTop(100000)
 	$('#messages').perfectScrollbar('update');
 });
@@ -103,9 +90,9 @@ socket.on('update users', function(data) {
 	$('#online').empty();
 	$.each(data, function(key, value) {
 		if(data[key].away)
-			$('#online').append($('<li class="italic">').text(key));
+			$('#online').append('<li><b style="color:#'+data[key].color+'">'+key+'</b> <span class="glyphicon glyphicon-time" aria-hidden="true"></span></li>');
 		else
-			$('#online').append($('<li>').text(key));
+			$('#online').append('<li><b style="color:#'+data[key].color+'">'+key+'</b></li>');
 	});
 });
 
@@ -116,3 +103,7 @@ socket.on('playback', function(data) {
 	});
 	$('#messages').append($('<li>').text('==PLAYBACK END=='));
 })
+
+socket.on('redirect', function() {
+	window.location.href = "http://localhost/uushii/tddnc/chat.php";
+});

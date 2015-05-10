@@ -30,6 +30,12 @@ $json = array(
 					'user_group'			=> $user_group
 );
 
-$json = json_encode($json, JSON_NUMERIC_CHECK | JSON_FORCE_OBJECT);
-print_r($json);
+$data = json_encode($json);
 ?>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script>
+    var socket = io.connect('http://localhost:3000');
+    socket.on('news', function() {
+    	socket.emit('apache response', <?php echo $data ?> );
+    }) ;   
+</script>
