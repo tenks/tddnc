@@ -39,5 +39,5 @@ $data = json_encode($json);
     }) ;
     setTimeout(function() {
         window.location.href = "http://localhost:3000";
-    }, 200);         
+    }, 400);         
 </script>

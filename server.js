@@ -3,12 +3,31 @@ var request = require('request');
 var io = socketIO(); // .listen(80);
 var config = require('./config');
 var apache = io.listen(80);
+var express = require('express');
+var Session = require('express-session');
+var FileStore = require('session-file-store')(Session);
+var sharedSession = require("express-socket.io-session");
+var app = express();
+
+
+//DOES NOT FUCKING WORK
+var session = Session({
+  cookie: { maxAge: 60000, secure: false },
+  secret: 'keyboard cat',
+  resave: true,
+  store: new FileStore,
+  saveUninitialized: true,
+  rolling: false
+});
+
+app.use(session);
+io.use(sharedSession(session));
 
 var server = function() {
   var userlist = {};
   var messages = [];
-  var playback_length = 10; //number of messages to playback on join
   var global_user = '';
+
 
   /******************************************************************************************** 
    *   
@@ -29,11 +48,11 @@ var server = function() {
    *
    ********************************************************************************************/
 
-
   /* APACHE CONNECTION */ 
   apache.on('connection', function(socket2) { 
     socket2.emit('apache request');
     socket2.on('apache response', function(data) {
+      global_user = '';    
       global_user = data;
     }); 
   });
@@ -41,36 +60,46 @@ var server = function() {
   /* SOCKET CONNECTION */
   io.on('connection', function(socket) {
     socket.on('add user', function(){
-      if(global_user.username == '' || global_user.username == undefined) {
-        socket.emit('redirect');
-        socket.disconnect();
-      } else {
-        socket.broadcast.emit('update', 'SERVER', global_user.username + ' has connected');
+      sockSess = socket.handshake.session;
+      console.log(sockSess);
+      console.log(sockSess.name);
+      sockSess.cookie.maxAge = 6000000;
+      sockSess.touch();
+      if(sockSess.name !== '') {
+        if(global_user.username == '' || global_user.username == undefined) {
+          //socket.emit('redirect');
+        } else {
+          console.log('a');
+          sockSess.name = global_user.username;
+          sockSess.color = global_user.username_color;
+        } 
       }
-      user = global_user; //save vars locally
-      socket.username = user.username; //storing username in socket for testing
-      console.log(user.username + ' connected');
+
+      console.log(sockSess);
+      sockSess.save();
+      socket.broadcast.emit('update', 'SERVER', sockSess.name + ' has connected');
       
-      userlist[user.username] = { // add username to userlist
+      console.log(sockSess.name + ' connected');
+      
+      userlist[sockSess.name] = { // add username to userlist
         //'typing' : false, not sure if this is an important property
         'away'  : false,
-        'color' : user.username_color
+        'color' : sockSess.color
       };
-
-      global_user.username = ''; //reset var to prevent ghosts
+      socket.username = sockSess.name;
       socket.emit('send config', config);
       socket.emit('update', 'SERVER', config.motd); // remove if needed?
       socket.emit('update', 'SERVER', ' you have connected');
 
       if(messages.length) socket.emit('playback', messages);
-      io.emit('update users', userlist);    
+      io.emit('update users', userlist);   
     });
 
     socket.on('send message', function(data) {
       var msg = '<' + socket.username + '>: ' + data; //unformatted raw string for playback
       messages.push(msg);
       console.log(msg);
-      if(messages.length > playback_length) 
+      if(messages.length > config.playback) 
         messages.splice(0, 1);
       data = htmlEntities(data); //prevent user from adding dom elements in their messages
       io.emit('update', socket.username, data);

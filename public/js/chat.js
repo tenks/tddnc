@@ -35,9 +35,6 @@ function update_typing(is_typing, username) {
 
 /* frontend events */
 $(document).ready(function() {
-  window.onbeforeunload = function() {
-      return "This page does not need to be refreshed";
-  }
 	$('#m').val('');
 	$('#m').focus();
 	$('#messages').perfectScrollbar();
