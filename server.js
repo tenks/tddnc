@@ -7,7 +7,6 @@ var apache = io.listen(80);
 var server = function() {
   var userlist = {};
   var messages = [];
-  var playback_length = 10; //number of messages to playback on join
   var global_user = '';
 
   /******************************************************************************************** 
@@ -70,7 +69,7 @@ var server = function() {
       var msg = '<' + socket.username + '>: ' + data; //unformatted raw string for playback
       messages.push(msg);
       console.log(msg);
-      if(messages.length > playback_length) 
+      if(messages.length > config.playback) 
         messages.splice(0, 1);
       data = htmlEntities(data); //prevent user from adding dom elements in their messages
       io.emit('update', socket.username, data);
