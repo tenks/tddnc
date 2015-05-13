@@ -2,12 +2,24 @@ var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
-var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var server = require('./server.js');
 var routes = require('./routes/index');
 var users = require('./routes/users');
+/* believe! */
+var Session = require('express-session')
+  , FileStore = require('session-file-store')(Session)
+  , sharedSession = require("express-socket.io-session");
 var app = express();
+
+var session = Session({
+  cookie: { maxAge: 60000, secure: false },
+  secret: 'keyboard cat',
+  resave: true,
+  store: new FileStore,
+  saveUninitialized: true,
+  rolling: false
+});
 
 app.io = server();
 
@@ -20,8 +32,11 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+/* believe pt. 2 */
+app.use(session);
+app.io.use(sharedSession(session));
 
 app.use('/', routes);
 app.use('/users', users);

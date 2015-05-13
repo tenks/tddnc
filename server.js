@@ -9,7 +9,6 @@ var FileStore = require('session-file-store')(Session);
 var sharedSession = require("express-socket.io-session");
 var app = express();
 
-
 //DOES NOT FUCKING WORK
 var session = Session({
   cookie: { maxAge: 60000, secure: false },
@@ -69,18 +68,25 @@ var server = function() {
         if(global_user.username == '' || global_user.username == undefined) {
           //socket.emit('redirect');
         } else {
-          console.log('a');
+          console.log('setting sockSess.name and .color');
           sockSess.name = global_user.username;
           sockSess.color = global_user.username_color;
         } 
       }
 
       console.log(sockSess);
-      sockSess.save();
+      console.log(sockSess.name);
+      console.log(sockSess.color);
+      sockSess.save(function(err) {
+        console.log('sockSess did not save!');
+      });
+      sockSess.reload(function(err) {
+        console.log('sockSess did not reload!');
+      });
       socket.broadcast.emit('update', 'SERVER', sockSess.name + ' has connected');
       
       console.log(sockSess.name + ' connected');
-      
+
       userlist[sockSess.name] = { // add username to userlist
         //'typing' : false, not sure if this is an important property
         'away'  : false,
@@ -112,6 +118,7 @@ var server = function() {
       if(socket.username !== '' && socket.username !== undefined) {
         io.emit('update', 'SERVER', socket.username+' has disconnected');
       }
+      //delete sockSess; // ?
     });
 
     socket.on("typing", function(data) {
